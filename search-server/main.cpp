@@ -44,6 +44,7 @@ struct Document {
 
 class SearchServer {
 public:
+
     int ReadLineWithNumber() {
         int result = 0;
         cin >> result;
@@ -51,6 +52,7 @@ public:
         document_count_ = result;
         return result;
     }
+
     void SetStopWords(const string& text) {
         for (const string& word : SplitIntoWords(text)) {
             stop_words_.insert(word);
@@ -60,8 +62,8 @@ public:
     void AddDocument(int document_id, const string& document) {
         const vector<string> words = SplitIntoWordsNoStop(document);
         double one_TF = 1.0 / words.size();
-        for (const auto& w: words){
-                documents_[w][document_id]+=one_TF;   
+        for (const auto& word: words){
+                documents_[word][document_id] += one_TF;   
         }
 
     }
@@ -81,6 +83,7 @@ public:
     }
 
 private:
+
     struct Query{
         set<string> slova;
         set<string> nslova;
@@ -114,23 +117,27 @@ private:
             else {
                 query_words.nslova.insert(word.substr(1));
             }
-            
         }
         return query_words;
     }
 
+    double IDF(const string& query) const{
+            return log(static_cast<double>(document_count_)/documents_.at(query).size());
+        };
+
     vector<Document> FindAllDocuments(const Query& query_words) const {
         map<int,double> doc;
         vector<Document> matched_documents;
-        
+
         for (const auto& query: query_words.slova)   {
             if(documents_.count(query)){
                 for(const auto& [id,tf] : documents_.at(query)){
-                    doc[id]+=tf*log(static_cast<double>(document_count_)/documents_.at(query).size());
+                    doc[id] += tf*IDF(query);
                 }             
 
             }
         } 
+        
         for (const auto& nquery: query_words.nslova){
             if(documents_.count(nquery)){
                 for(const auto& [id,tf] : documents_.at(nquery)){
@@ -154,7 +161,6 @@ SearchServer CreateSearchServer() {
     for (int document_id = 0; document_id < document_count_; ++document_id) {
         search_server.AddDocument(document_id, ReadLine());
     }
-
     return search_server;
 }
 

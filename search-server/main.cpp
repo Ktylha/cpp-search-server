@@ -275,3 +275,4 @@ int main() {
         PrintDocument(document);
     }
     return 0;
+}

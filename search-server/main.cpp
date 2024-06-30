@@ -174,7 +174,7 @@ public:
                 break;
             }
         }
-        return tuple{matched_words, documents_.at(document_id).status};
+        return {matched_words, documents_.at(document_id).status};
     }
     
     
@@ -221,13 +221,16 @@ private:
     };
 
     QueryWord ParseQueryWord(string text) const {
-        if (text.find("--") != -1 || text.find("- ") != -1 || text.back() == '-'){
-            throw invalid_argument("invalid character int findtop");
+        if(!IsValidWord(text)){
+          throw invalid_argument("invalid character int findtop");
         }
         bool is_minus = false;
-        if (text[0] == '-') {
+        if (text.front() == '-') {
             is_minus = true;
             text = text.substr(1);
+        }
+        if (text.front() == '-' || text.size() < 1 ||text.back() == '-'){
+            throw invalid_argument("invalid character int findtop");
         }
         return {text, is_minus, IsStopWord(text)};
     }
@@ -238,9 +241,6 @@ private:
     };
 
     Query ParseQuery(const string& text) const {
-        if(!IsValidWord(text)){
-          throw invalid_argument("invalid character int findtop");
-        }
         Query query;
         for (const string& word : SplitIntoWords(text)) {
             const QueryWord query_word = ParseQueryWord(word);
@@ -321,7 +321,7 @@ int main() {
             search_server.AddDocument(4, "большой пёс скворец"s, DocumentStatus::ACTUAL, { 1, 3, 2, 4 }); 
             search_server.AddDocument(5, "пушистый кот пушистый хвостcc"s, DocumentStatus::ACTUAL, { 7, 2, 7 }); 
  
-        vector<Document> documents = search_server.FindTopDocuments("пушистый кот klkkl -k- -k"s); 
+        vector<Document> documents = search_server.FindTopDocuments("пушистый кот klkkl -k - -k"s); 
         for (const Document& document : documents) { 
             PrintDocument(document); 
         } 
